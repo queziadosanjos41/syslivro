@@ -2,45 +2,68 @@ package br.com.syslivro.util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 
 public class ConnectionFactory {
 
-    private static final String URL =
-            "jdbc:mysql://localhost:3306/sistema_livros";
+    public static Connection getConnection() {
 
-    private static final String USER = "root";
+        try {
 
-    private static final String PASSWORD =
-            "Aether@2626";
+            Class.forName("com.mysql.cj.jdbc.Driver");
 
-public static Connection getConnection() {
+            // Verifica se estamos usando as variáveis do Render
+            String host = System.getenv("DB_HOST");
 
-    try {
+            if (host != null && !host.isEmpty()) {
 
-        Class.forName("com.mysql.cj.jdbc.Driver");
+                // BANCO DA AIVEN / RENDER
 
-        System.out.println("CONNECTION FACTORY NOVO - TESTE 123");
+                String port = System.getenv("DB_PORT");
+                String database = System.getenv("DB_NAME");
+                String user = System.getenv("DB_USER");
+                String password = System.getenv("DB_PASSWORD");
 
-        return DriverManager.getConnection(
-                URL,
-                USER,
-                PASSWORD
-        );
+                String url = "jdbc:mysql://" + host + ":" + port
+                        + "/" + database
+                        + "?sslMode=REQUIRED";
 
-    } catch (Exception e) {
+                System.out.println("Conectando ao banco da Aiven...");
 
-        System.out.println("ERRO NO CONNECTION FACTORY:");
-        e.printStackTrace();
+                return DriverManager.getConnection(
+                        url,
+                        user,
+                        password
+                );
 
-        throw new RuntimeException(
-                "Erro ao conectar ao banco",
-                e
-        );
-    
+            } else {
 
+                // BANCO LOCAL
 
+                String url =
+                        "jdbc:mysql://localhost:3306/sistema_livros";
+
+                String user = "root";
+
+                String password = "Aether@2626";
+
+                System.out.println("Conectando ao banco local...");
+
+                return DriverManager.getConnection(
+                        url,
+                        user,
+                        password
+                );
+            }
+
+        } catch (Exception e) {
+
+            System.out.println("ERRO NO CONNECTION FACTORY:");
+            e.printStackTrace();
+
+            throw new RuntimeException(
+                    "Erro ao conectar ao banco",
+                    e
+            );
+        }
     }
-}
-
 }
